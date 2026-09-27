@@ -15,13 +15,13 @@ raw data : {
 """
 
 
-
-
-
 from src.api.utils.high_pass_filtering import high_pass_filltering
+from src.api.utils.z_score_norl import z_score_normalize
+from src.api.utils.PCA_256 import PCA_256
+
 import numpy as np
 def test_data_return(data) -> np.ndarray:
-    if data == None:
+    if data is None:
         data = np.random.random([30, 63, 1200])     # 30个样本
 
     # preprocessed 
@@ -36,28 +36,20 @@ def test_data_return(data) -> np.ndarray:
 
     data = data[:, :, 200:] - embedding_data.reshape(x, y, 1)
 
+    # z-score normalization
+    data = z_score_normalize(data)
 
+    # PCA reduced to 256 dimensions
+    data = PCA_256(data)
 
     return  data 
-
-
-if "__main__" == __name__:
-    print(test_data_return(None).shape)
-
-
-
-
-
-
-
-
 
 
 
 
 if "__main__" == __name__:
     data = np.random.random([30, 63, 1200])
-
+    print(test_data_return(data).shape)
 
 
 
