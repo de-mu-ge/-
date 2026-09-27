@@ -1,0 +1,328 @@
+我已提取了您提供的 PDF 文件内容。以下是该文档的完整文本：
+
+---
+
+1Chongqing University 2UNSW Sydney 3Tsinghua University 4The First Affiliated Hospital of Chongqing Medical University
+
+## Abstract
+
+Large Vision Language Models (LVLMs) exhibit strong visual understanding and reasoning abilities. However, whether their internal representations reflect human visual cognition is still under- explored. In this paper, we address this by quantifying LVLM- brain alignment using image- evoked Electroencephalogram (EEG) signals, analyzing the effects of model architecture, scale, and image type. Specifically, by using ridge regression and representational similarity analysis, we compare visual representations from 32 open- source LVLMs with corresponding EEG responses. We observe a structured LVLM- brain correspondence: First, intermediate layers (8- 16) show peak alignment with EEG activity in the 100- 300 ms window, consistent with hierarchical human visual processing. Secondly, multimodal architectural design contributes \(3.4\times\) more to brain alignment than parameter scaling, and models with stronger downstream visual performance exhibit higher EEG similarity. Thirdly, spatiotemporal patterns further align with known cortical visual pathways. These results demonstrate that LVLMs learn human- aligned visual representations and establish neural alignment as a biologically grounded benchmark for evaluating and improving LVLMs. In addition, those results could provide insights that may inform the development of neuro- inspired applications.
+
+## 1 Introduction
+
+text[[115, 758, 486, 918], [511, 547, 881, 641]]
+Large Vision Language Models (LVLMs) learn unified visual- semantic representations for image captioning, visual question answering, and image- text retrieval by mapping visual and linguistic inputs into a shared high- dimensional space (Yin et al., 2024; Fei et al., 2024; Li et al., 2024a; Yang et al., 2025a,b). In neuroscience, neuroimaging methods provide rich measurements of the spatiotemporal dynamics of brain activity during visual cognition (Cichy and Oliva, 2020), capturing neural responses critical for studying human visual perception (Mustafa et al., 2012). This motivates investigating the similarity between LVLM representations and image- evoked neural signals. Such investigation may ultimately inform neuroscience- grounded, human- aligned multimodal AI systems.
+
+Figure 1: The motivation of this paper: exploring the similarity of human brain EEG signals and LVLM representations from various aspects.
+
+Previous studies show strong alignment between deep learning models and brain cognitive signals. CNNs predict activity along the primate ventral visual stream, with deeper layers corresponding to higher- level cortical areas (Yamins et al., 2014; Kazemian et al., 2025), while Vision Transformers suggest that self- attention captures long- range dependencies relevant to biological vision (Tuli et al., 2021; Raghu et al., 2021; Hernández- Cámara et al., 2025). Beyond discriminative models, generative approaches such as latent diffusion enable visual decoding from brain signals, revealing semantically aligned neural representations (Wang et al., 2024; Jing et al., 2025). Overall, models from traditional deep learning architectures to LVLMs exhibit consistent structural and functional correspondences with human brain processing and can reliably pre
+
+===== Page 2 =====
+
+1) To the best of our knowledge, this is the first work to explore LVLM- EEG alignment. We leverage image- evoked EEG signals with ridge regression and representational similarity analysis to compare LVLM representations with human brain responses across 32 models, enabling systematic analysis of architectural and scaling effects.
+
+However, existing similarity analysis research primarily relies on functional Magnetic Resonance Imaging (fMRI) data (Logothetis, 2008), which offers high spatial resolution but suffers from limited temporal resolution, as shown in Figure 1. In contrast, EEG signals (Cichy and Oliva, 2020; Mustafa et al., 2012) provide millisecond- scale temporal precision that captures the dynamic flow of cognitive processing, yet their alignment with existing LVLMs remains underexplored. More importantly, it remains unclear whether any observed alignment between LVLMs and brain signals reflects superficial representational similarity or deeper computational parallels. Human visual cognition is inherently dynamic and hierarchical, with distinct processing stages unfolding over time and across cortical regions (Turner et al., 2023; Kaas et al., 2010). Whether LVLMs exhibit analogous temporal organization when encoding visual stimuli, and which factors contribute to such alignment, are still largely unexplored.
+
+Motivated by these considerations, this paper investigates the extent to which LVLMs reflect image- induced EEG signals and analyzes how different factors, including model architecture, model scale, and image type, influence LVLM- brain alignment. Specifically, we employ ridge regression (McDonald, 2009) and Representational Similarity Analysis (RSA) (Kriegeskorte et al., 2008), two methods widely used in neuroscience to compare neural and model representations (Mischler et al., 2024; Zhou et al., 2024; Doerig et al., 2025), to quantify the similarity between LVLM multimodal representations and image- evoked EEG signals. We systematically analyze LVLM- brain alignment using 32 open- source models spanning architectures and scales, revealing that multimodal architectural design contributes \(3.4\times\) more to brain alignment than parameter scaling. Through hierarchical layer- time analysis, we find intermediate layers (8- 16) align best with EEG activity during 100- 300 ms, matching the timeline of human visual processing. Stronger LVLM task performance correlates with higher EEG similarity, and spatial alignment follows established cortical pathways. Our main contributions can be summarized as follows:
+
+1) To the best of our knowledge, this is the first work to explore LVLM-EEG alignment. We leverage image-evoked EEG signals with ridge regression and representational similarity analysis to
+
+compare LVLM representations with human brain responses across 32 models, enabling systematic analysis of architectural and scaling effects.
+
+(2) We find that LVLMs show strong alignment with human visual processing from both representational hierarchy and temporal dynamics. Multimodally trained and larger models outperform vision-only models, with intermediate layers exhibiting peak alignment during feature integration.
+(3) We find that the spatiotemporal alignment mirrors known cortical visual pathways and, from the perspective of task performance, correlates strongly with downstream visual benchmarks, indicating that LVLM-brain similarity is a meaningful measure of human-aligned visual understanding.
+
+## 2 Related Work
+
+### 2.1 Neural Foundations of Vision Processing
+
+Human visual processing involves functionally specialized cerebral lobes, and EEG captures its spatiotemporal dynamics across processing stages. Visual processing originates in the occipital lobe, encompassing primary and secondary visual cortices V1- V4 that encode low- level features such as contrast, edges, orientation, and spatial location (Turner et al., 2023; Kaas et al., 2010), with occipital EEG responses emerging around 80- 100 ms after stimulus onset (Robinson et al., 2017). Visual information then propagates along the ventral "what" pathway in the temporal lobe for object recognition and semantic processing (Murray et al., 2007; Kaas et al., 2010), and the dorsal "where/how" pathway in the parietal lobe for spatial encoding and visuomotor integration (Babiloni et al., 2006; Nassi and Callaway, 2009); these high- level visual cognitive processes are manifested in EEG signals as sustained neural activity at 200- 400 ms, with semantic- related visual image processing peaking at approximately \(300~\mathrm{ms}\) (Grutzner et al., 2010). The spatiotemporal latency characteristics of EEG responses precisely reflect the stepwise transformation of low- level visual features into high- level meaningful visual representations in human brain.
+
+### 2.2 LVLM-Brain Alignment
+
+Emerging research reveals strong parallels between LVLMs and human brain representations, with most evidence to date derived from fMRI- based neuroimaging. Neuroimaging studies show that high- level visual brain representations align with LLM embeddings, as scene- caption embed
+
+===== Page 3 =====
+
+igure 2: Illustration of the analysis pipeline for exploring representational similarity between human EEG signals and LVLMs. Image representations from different LVLM layers are compared with EEG responses elicited by the same visual stimuli to assess model- brain alignment.
+
+dings can model neural responses to natural scenes and enable caption reconstruction from brain signals (Doerig et al., 2025). LVLMs also encode human- like object concepts corresponding to category- selective regions such as the fusiform face area and parahippocampal place area, and multimodal encoding models demonstrate that LVLM- derived representations outperform unimodal features in predicting fMRI responses (Du et al., 2025; Oota et al., 2025b). In addition, instruction- tuned LVLMs exhibit enhanced alignment with the brain's vision- language integration mechanisms as measured with fMRI (Oota et al., 2025a). Complementary evidence from systematically varied self- supervised vision transformers (DINOv3) further shows that model size, training data scale, and image type jointly shape brain similarity when compared against ultra- high- field fMRI and MEG recordings (Raugel et al., 2025). However, most existing evidence relies on fMRI and lacks millisecond- level analysis of LVLM- brain temporal dynamics, motivating us to conduct the EEG- LVLM similarity investigation.
+
+## 3 Methodology
+
+text[[117, 791, 486, 919], [511, 378, 881, 458]]
+To evaluate the similarity between LVLMs and human visual processing, as shown in Figure 2, we use ridge regression (McDonald, 2009) to linearly map LVLM image features to EEG- derived brain signals elicited by the same visual stimuli, thereby quantifying LVLM- brain representational alignment. Based on this framework, we examine how model architecture, scale, and image cat egory affect LVLM- brain similarity, analyze spatiotemporal correspondences with human visual processing, and explore the relationship between LVLM- brain alignment and LVLM performance on vision- related benchmarks.
+
+### 3.1 Brain Data and Preprocessing
+
+This study focuses on a publicly available large- scale within- subject EEG dataset, the THINGS- EEG dataset (Gifford et al., 2022), which contains EEG recordings from 10 subjects collected under the Rapid Serial Visual Presentation (RSVP) paradigm (Grootswagers et al., 2019). The training set comprises 1,654 object concepts with 10 images each, repeated four times per subject, while the test set includes 200 concepts with a single image repeated 80 times per subject. Following prior work (Li et al., 2024b), EEG data were band- pass filtered between 0.1 and 100 Hz, segmented from 0 to 1000 ms after stimulus onset with baseline correction using the 200 ms pre- stimulus interval, and z- score normalized together with image features. Principal component analysis (PCA) (Abdi and Williams, 2010) was then applied for dimensionality reduction prior to regression- based alignment and representational similarity analyses.
+
+### 3.2 Extraction of Image Embeddings
+
+We extracted visual features using LVLMs by averaging the embeddings of all visual tokens from the final layer of the vision encoder. Additionally, we obtained layer- wise visual representations to analyze the correspondence between different
+
+===== Page 4 =====
+
+model layers and human brain responses. These features were then used as inputs for subsequent regression- based alignment and representational similarity analyses.
+
+### 3.3 Mapping Image Embeddings to EEG Responses
+
+Following prior work (Mischler et al., 2024; Zhou et al., 2024; Doerig et al., 2025), we use ridge regression (McDonald, 2009) to quantify the correspondence between LVLM visual representations and EEG responses. We evaluate how well image embeddings from different model layers predict EEG activity at individual sensor channels. Let \(N\) be the number of stimulus samples. Neural responses are collected in \(\mathbf{y} \in \mathbb{R}^{N \times D}\) . LVLM visual representations are denoted by \(\mathbf{X} \in \mathbb{R}^{N \times L \times D}\) , where \(L\) is the number of layers and \(D\) the embedding dimension. For each layer \(l\) , we extract \(\mathbf{X}^{(l)} \in \mathbb{R}^{N \times D}\) . Predictive performance is assessed using \(K\) - fold cross- validation. The prediction accuracy for layer \(l\) is defined as the average Pearson correlation across folds:
+
+\[\rho_{l} = \frac{1}{K}\sum_{k = 1}^{K}\mathrm{corr}\left(\mathbf{y}_{\mathrm{test}}^{(k)},\mathbf{x}_{\mathrm{test}}^{(l,k)}\hat{\beta}^{(l,k)}\right), \quad (1)\]
+
+where \(\mathbf{X}_{\mathrm{test}}^{(l,k)} \in \mathbb{R}^{N_k \times D}\) and \(\mathbf{y}_{\mathrm{test}}^{(k)} \in \mathbb{R}^{N_k \times D}\) denote test features and EEG responses, and \(\hat{\beta}^{(l,k)}\) are regression weights. The ridge solution is:
+
+\[\hat{\beta}^{(l,k)} = \left(\mathbf{X}_{\mathrm{train}}^{(l,k)\top}\mathbf{X}_{\mathrm{train}}^{(l,k)} + \alpha \mathbf{I}\right)^{-1}\mathbf{X}_{\mathrm{train}}^{(l,k)\top}\mathbf{y}_{\mathrm{train}}^{(k)}, \quad (2)\]
+
+where \(\alpha\) is the regularization coefficient and \(\mathbf{I}\) the identity matrix.
+
+### 3.4 Multidimensional Similarity Assessment
+
+We present our analysis from four complementary perspectives: (1) Predictive performance evaluation, (2) Spatio- temporal pattern of predictions, (3) Hierarchical LVLM- to- EEG temporal alignment, and (4) Category- dependent similarity.
+
+Predictive Performance Evaluation. We evaluated the similarity between model- predicted and neural representations using both signal- and representation- level metrics. At the signal level, the Pearson correlation (Pearson, 1895) measured the linear correspondence between the true EEG signal vector \(\mathbf{y}\) and the predicted signal vector \(\hat{\mathbf{y}}\) while the Spearman rank correlation \((\rho)\) (Spearman, 1904) captured monotonic relationships. At the representation level, we employed centered kernel alignment (CKA) (Cortes et al., 2012) with a linear kernel to compare the overall representational geometry of the predicted and observed EEG features. Formally, let \(\mathbf{K}\) and \(\mathbf{L}\) be the similarity (kernel) matrices derived from the predicted EEG features and the true EEG features across all stimulus trials, respectively. The linear CKA index is defined as:
+
+the representation level, we employed centered kernel alignment (CKA) (Cortes et al., 2012) with a linear kernel to compare the overall representational geometry of the predicted and observed EEG features. Formally, let \(\mathbf{K}\) and \(\mathbf{L}\) be the similarity (kernel) matrices derived from the predicted EEG features and the true EEG features across all stimulus trials, respectively. The linear CKA index is defined as:
+
+\[\mathrm{CKA}(\mathbf{K},\mathbf{L}) = \frac{\langle\mathbf{K}_c,\mathbf{L}_c\rangle_F}{\|\mathbf{K}_c\|_F\|\mathbf{L}_c\|_F}, \quad (3)\]
+
+where \(\mathbf{K}_c\) and \(\mathbf{L}_c\) denote the centered versions of \(\mathbf{K}\) and \(\mathbf{L}\) , \(\langle \cdot , \cdot \rangle_F\) is the Frobenius inner product, and \(\| \cdot \|_F\) is the Frobenius norm. Additionally, representational similarity analysis (RSA) (Kriegeskorte et al., 2008) was performed by constructing correlation- based representational dissimilarity matrices (RDMs) for both the predicted and neural representations. The alignment between these two RDMs was quantified using the Spearman correlation (RSA score) and Kendall's rank correlation coefficient \((\tau)\) (Kendall, 1938) to ensure robustness to non- linear monotonic relationships.
+
+Spatio- temporal Pattern of Predictions. To examine the spatial relationship between LVLM features and EEG signals, ridge regression was used to predict each EEG channel from LVLM features, and Pearson correlations between predicted and true signals were computed. Channel- level correlations were visualized on a standard 10- 20 EEG montage using the MNE toolbox (Gramfort et al., 2013). Channels were further grouped into 4 functional regions: Frontal, Central, Parietal, and Occipital, and regional mean and standard deviation of correlations quantified predictive performance.
+
+Layer- wise LVLM- EEG Temporal Alignment. To examine temporal alignment between LVLM layer representations and EEG dynamics, we conducted a cross- dimensional similarity analysis. EEG signals were segmented into 100,ms windows and flattened, while features were extracted from each LVLM layer, then following the ridge regression procedure described in Section 3.3.
+
+Category- dependent Similarity. To examine category- dependent alignment between LVLM features and EEG responses, stimuli were grouped into 12 high- level ImageNet categories (Deng et al., 2009): mammal, bird, fish, reptile, amphibian, vehicle, furniture, musical instrument, geological formation, tool, flower, and fruit. Category labels
+
+===== Page 5 =====
+
+Table 1: Similarity metrics between LVLMs representations and EEG signals across different model families and scales. Cells with teal background indicate the maximum value for each metric within a single model family. The overall optimal result across all models is highlighted with yellow background . All values are reported as mean \(\pm\) standard deviation across subjects, with all permutation- test \(p\) -values \(< 0.05\)
+
+Table 1: Similarity metrics between LVLMs representations and EEG signals across different model families and scales. Cells with teal background indicate the maximum value for each metric within a single model family. The overall optimal result across all models is highlighted with yellow background . All values are reported as mean \(\pm\) standard deviation across subjects, with all permutation-test \(p\) -values \(< 0.05\)
+
+<table>Model SeriesScalePearsonSpearmanCKARSAKendall<td rowspan="3">ViTB0.2262 ± 0.03140.2187 ± 0.02890.4033 ± 0.09230.2803 ± 0.09230.1492 ± 0.0203L0.2168 ± 0.02980.2106 ± 0.02840.4001 ± 0.09200.2800 ± 0.08560.1434 ± 0.0197H0.2152 ± 0.03150.2083 ± 0.02910.3878 ± 0.09050.2632 ± 0.08240.1420 ± 0.0203<td rowspan="4">Qwen2.5-VL3B0.2427 ± 0.03240.2361 ± 0.02940.4135 ± 0.09500.2976 ± 0.08660.1614 ± 0.02077B0.2316 ± 0.02800.2247 ± 0.02620.4151 ± 0.09700.2976 ± 0.08790.1535 ± 0.018332B0.2370 ± 0.02880.2301 ± 0.02640.4135 ± 0.09540.2953 ± 0.09000.1572 ± 0.018572B0.2343 ± 0.02940.2269 ± 0.02800.4166 ± 0.09970.2940 ± 0.09040.1550 ± 0.0196<td rowspan="4">Qwen3-VL2B0.2321 ± 0.03050.2245 ± 0.02770.4083 ± 0.09250.2883 ± 0.08810.1532 ± 0.01954B0.2379 ± 0.03150.2306 ± 0.02840.4196 ± 0.09660.3056 ± 0.09290.1576 ± 0.02008B0.2385 ± 0.03140.2310 ± 0.02880.4250 ± 0.10050.3138 ± 0.09170.1578 ± 0.020232B0.2338 ± 0.03160.2263 ± 0.02920.4183 ± 0.09850.2996 ± 0.08890.1547 ± 0.0204<td rowspan="2">LLaVA-v1.57B0.2102 ± 0.02970.2050 ± 0.02820.3815 ± 0.09010.2653 ± 0.08460.1395 ± 0.019713B0.2102 ± 0.02970.2050 ± 0.02820.3814 ± 0.09020.2651 ± 0.08460.1396 ± 0.0197<td rowspan="2">LLaVA-Next7B0.2377 ± 0.03670.2316 ± 0.03410.4267 ± 0.10020.3223 ± 0.09260.1583 ± 0.023813B0.2358 ± 0.03550.2298 ± 0.03250.4251 ± 0.10280.3210 ± 0.09380.1570 ± 0.0228<td rowspan="4">InternVL31B0.2431 ± 0.03230.2357 ± 0.03020.4208 ± 0.09910.3141 ± 0.09580.1612 ± 0.02132B0.2469 ± 0.03280.2398 ± 0.03120.4240 ± 0.09900.3182 ± 0.09480.1640 ± 0.02198B0.2521 ± 0.03410.2437 ± 0.03240.4340 ± 0.10270.3297 ± 0.09700.1669 ± 0.02299B0.2502 ± 0.03400.2427 ± 0.03200.4366 ± 0.10560.3340 ± 0.09860.1661 ± 0.0226<td rowspan="4">InternVL3.514B0.2514 ± 0.03530.2429 ± 0.03320.4381 ± 0.10500.3283 ± 0.09920.1663 ± 0.023538B0.2591 ± 0.03750.2523 ± 0.03530.4352 ± 0.10840.3339 ± 0.09850.1730 ± 0.02501B0.2529 ± 0.03330.2454 ± 0.03150.4316 ± 0.10080.3274 ± 0.09550.1679 ± 0.02232B0.2454 ± 0.03430.2385 ± 0.03270.4166 ± 0.09960.3139 ± 0.09340.1632 ± 0.0230<td rowspan="4">InternVL3.54B0.2512 ± 0.03510.2443 ± 0.03310.4281 ± 0.10130.3185 ± 0.09120.1672 ± 0.02348B0.2560 ± 0.03560.2491 ± 0.03320.4352 ± 0.10540.3314 ± 0.09620.1706 ± 0.023514B0.2523 ± 0.03580.2447 ± 0.03580.4371 ± 0.10420.3271 ± 0.09660.1677 ± 0.023838B0.2649 ± 0.03730.2573 ± 0.03480.4432 ± 0.10810.3422 ± 0.09680.1764 ± 0.0247<td rowspan="3">DeepSeek-VL2Tiny0.2368 ± 0.03320.2301 ± 0.03140.4174 ± 0.09900.3042 ± 0.09140.1572 ± 0.0220Small0.2501 ± 0.03270.2428 ± 0.03030.4369 ± 0.10430.3316 ± 0.09790.1661 ± 0.0214Base0.2481 ± 0.03280.2409 ± 0.03030.4350 ± 0.10580.3264 ± 0.09570.1648 ± 0.0214<td rowspan="2">SAIL-VL22B0.2298 ± 0.03210.2233 ± 0.03020.3974 ± 0.09540.2905 ± 0.08800.1523 ± 0.02118B0.2370 ± 0.03320.2296 ± 0.03140.4052 ± 0.09790.3011 ± 0.09390.1567 ± 0.0220</table>
+
+were assigned via a zero- shot classification using bart- large- mnli (Lewis et al., 2019)
+
+## 4 Experiments
+
+### 4.1 Implementation Details
+
+Experiments are conducted on the THINGS- EEG dataset (Gifford et al., 2022) with a single NVIDIA A800 GPU. Statistical significance tests and additional experimental details are provided in Appendix A.1. We used 32 LVLMs from 9 different model families, covering both vision- only and vision- language architectures with varying model scales, including ViT- based models (Dosovitskiy, 2020), Qwen2.5- VL (Bai et al., 2025b), Qwen3- VL (Bai et al., 2025a), LLaVA- v1.5 (Liu et al., 2024a), LLaVA- NeXT (Liu et al., 2024b), InternVL3 (Zhu et al., 2025), InternVL3.5 (Wang
+
+et al., 2025), DeepSeek- VL2 (Wu et al., 2024), and SAIL- VL2 (Yin et al., 2025), All models employed in this study are publicly available from https://huggingface.co/models. More details are provided in Appendix A.2.
+
+### 4.2 LVLM-brain Similarity Results
+
+Main Experimental Results. We conduct experiments following the method and evaluation metrics detailed in Section 3. Table 1 presents a comprehensive comparison of EEG alignment performance across 32 models. From the results, we could find that there is a highly consistent correlation among all the measurement indicators. In addition, all modern LVLMs exhibit statistically significant correlations with EEG signals, substantially exceeding random baselines; for example, Qwen2.5- VL7B achieves \(0.2316 \pm 0.0280\) , whereas the ran
+
+===== Page 6 =====
+
+Figure 3: Layer-wise correspondence between the LVLMs and EEG signals across multiple participants.
+
+dom baseline remains close to zero at \(0.0002\pm\) 0.0077. Cross- subject experiments are provided in Appendix A.5. The RDM visualizations are provided in Appendix A.4. These results indicate that the high- level visual- semantic representations learned by VLMs capture meaningful neural information related to human visual processing.
+
+Differences Across Model Families. The models exhibit clear performance tiers in EEG alignment. The InternVL3.5 series achieves the highest performance, with its 38B model scoring Pearson 0.2649, Spearman 0.2573, CKA 0.4432, and RSA 0.3422, demonstrating the strongest overall alignment. The second tier is dominated by the Qwen series and LLaVA- Next models. In contrast, pure visual ViT models and LLaVA- v1.5 perform lowest, with ViT below 0.227 and LLaVA- v1.5 around 0.210, well behind mainstream LVLMs. In particular, ViT- B, ViT- L, and ViT- H underperform most LVLMs, indicating that unimodal visual pretraining is insufficient to capture EEG- relevant neural representations. This gap highlights the importance of multimodal, language- augmented supervision for learning visual features that better align with human brain responses.
+
+text[[115, 824, 485, 919], [511, 404, 881, 580]]
+Impact of Model Scale. While some models show modest gains with increasing parameter size, larger models do not consistently perform better across families. For instance, in the Qwen3- VL series, the 8B model outperforms the 32B model in Pearson correlation, and within InternVL3.5, scaling from 2B to 38B yields only a 1.6 percentage point improvement. In contrast, architectural design has a much larger impact: InternVL3.5- 38B achieves a Pearson correlation of 0.2649, compared to 0.2102 for LLaVA- v1.5- 7B, a gap more than three times larger than the maximum gain from scaling alone. These results indicate that architectural choices, rather than model size, are the primary driver of improved alignment with neural signals, consistent with prior findings on cortex- aligned representations (Kazemian et al., 2025).
+
+### 4.3 Consistency with Human Visual
+
+Hierarchical LVLM- to- EEG Temporal Alignment. The layer- wise correspondence between LVLM representations and EEG signals exhibits a clear hierarchical and temporal structure. As shown in Figure 3 (a), Pearson correlations consistently peak at intermediate model layers across subjects, indicating the strongest and most stable neural alignment. Temporal analysis in Figure 3 (b) further shows that these intermediate layers, roughly layers 8- 16, align most strongly with EEG activity in the 100- 300 ms window, while shallow and deep layers, as well as early and late time intervals, show markedly weaker correspondence. These results suggest that intermediate LVLM representations temporally align with high- level visual cognitive processing, consistent with the hierarchical organization of the visual cortex (Babiloni et al., 2006) and recent evidence for hierarchical brain recapitulation in deep models (Muttenthaler et al., 2025).
+
+===== Page 7 =====
+
+Figure 4: Spatiotemporal dynamics of LVLM-EEG similarity.
+
+Table 2: Representation analysis of QwenVL2.5 under different input configurations.
+
+<table>Input ConfigurationPearsonSpearmanCKARSAKendall<td colspan="6">Visual Encoder OnlyImage only0.232 ± 0.0280.225 ± 0.0260.415 ± 0.0970.298 ± 0.0880.154 ± 0.018<td colspan="6">Multimodal FusionImage + Explicit prompt0.233 ± 0.0320.226 ± 0.0300.406 ± 0.0970.289 ± 0.0920.197 ± 0.064Image + No prompt0.233 ± 0.0320.226 ± 0.0300.406 ± 0.0970.289 ± 0.0920.197 ± 0.064Image + Noise prompt0.233 ± 0.0320.226 ± 0.0300.406 ± 0.0970.289 ± 0.0920.197 ± 0.064Image + Caption prompt0.233 ± 0.0320.226 ± 0.0300.406 ± 0.0970.289 ± 0.0920.197 ± 0.064Black image + Caption prompt0.171 ± 0.0290.168 ± 0.0290.311 ± 0.0690.177 ± 0.0670.119 ± 0.045</table>
+
+Spatiotemporal Dynamics of Similarity. Figure 4 illustrates the spatiotemporal dynamics of EEG- LVLM image feature correspondence within the first \(500~\mathrm{ms}\) using \(100~\mathrm{ms}\) time windows. During the \(0 - 100~\mathrm{ms}\) interval, correlations are generally low across the brain. Between \(100 - 300~\mathrm{ms}\) strong correlations emerge in the occipital region and gradually spread, peaking in intensity. From \(300 - 400~\mathrm{ms}\) high- correlation areas extend toward the parietal cortex, followed by a decline to lower levels in the \(400 - 500~\mathrm{ms}\) window. These patterns reflect the temporal progression of visual processing, with early occipital engagement followed by parietal propagation, consistent with the spatiotemporal dynamics of human visual information processing (Robinson et al., 2017). Results by brain region are in Appendix A.6.
+
+### 4.4 Cross-Modal Layer Consistency
+
+Table 2 shows that multimodal fusion in QwenVL2.5 consistently improves rank- based alignment over the visual- only setting, yielding the highest Pearson, Spearman, and Kendall correlations. Performance is nearly identical across prompt types- including an explicit prompt ("Describe this image."), empty prompt, noise prompt with five random words (e.g., "Harmony illuminate umbrella freedom like."), and caption prompt, indicating that gains arise from multimodal integration rather than prompt semantics. In contrast, the black image + caption condition degrades all metrics, confirming the necessity of valid visual input. Notably, the visual- only encoder achieves the highest CKA and RSA, suggesting stronger linear and geometric structure that is partially smoothed by cross- modal fusion.
+
+Figure 5: Category-level correlations, where MI is musical instrument and GF is geological formation.
+
+### 4.5 Category-Level Similarity
+
+Figure 5 shows category- specific similarities between LVLM representations and EEG signals, revealing clear differences across object categories. All categories exceed chance- level alignment, but alignment strength varies: geological formations and amphibians achieve the highest correlations, around 0.21, while vehicles and fruits show the weakest similarity, approximately 0.15. The narrow error bars confirm stable measurements. These discrepancies reflect how neural and model representa
+
+===== Page 8 =====
+
+Figure 6: Relationship between LVLM benchmark performance and LVLM- brain similarity. The red line denotes the regression line of the relationship, while the shaded area represents the \(95\%\) confidence interval of the regression.
+
+tions interact. Categories such as amphibians evoke richer and more discriminative neural patterns and are also associated with diverse visual- semantic information in model training, leading to stronger alignment. In contrast, visually and semantically simpler categories like fruits exhibit weaker correspondence, suggesting their neural representations may rely more on low- level perceptual features that are less emphasized in high- level LVLM embeddings. Thus, neural alignment depends jointly on the biological salience of visual categories and the semantic hierarchies learned by the model.
+
+### 4.6 Correlation with LVLM Benchmarks
+
+Figure 6 shows the relationship between LVLM- brain similarity and benchmark performance on seven tasks from OpenCompass (https://opencompass.org.cn/), including average score, general perception, spatial understanding, visual quality understanding, infographic understanding, multimodal reasoning, and multimodal creation, more details are provided in Appendix A.3. Across all subplots, the regression lines display clear positive trends, indicating that higher Pearson similarity with brain signals is associated with better task performance. This relationship is strongest for the overall average score \((R^2 = 0.6096, p < 0.001)\) , highlighting a robust link between neural alignment and model capability. The narrow \(95\%\) confidence intervals
+
+further support the statistical stability of this trend. Task- level analysis reveals that multimodal creation \((R^2 = 0.6337, p < 0.001)\) and multimodal reasoning \((R^2 = 0.5395, p = 0.0028)\) exhibit the strongest associations, whereas spatial understanding shows the weakest and least significant correlation \((R^2 = 0.3978, p = 0.0156)\) , suggesting a weaker coupling between neural similarity and spatial task performance.
+
+## 5 Conclusions
+
+To investigate the neural alignment of LVLMs, we applied ridge regression and RSA to image- evoked EEG. Our results show that LVLMs align significantly with human brain, with intermediate layers coupling strongest to mid- stage activity. Model architectural design outweighs parameter scaling in achieving brain- aligned representations, and LVLMs outperform unimodal vision models. Alignment peaks in occipital- parietal regions at 100- 300ms, matching human visual processing dynamics. Higher neural alignment correlates with better LVLM benchmark performance, revealing clear correspondences between artificial and biological visual processing and offer insights for brain- inspired multimodal model design.
+
+## Limitations
+
+This study is based on visual representations of open- source LVLMs, precluding the evaluation of
+
+===== Page 9 =====
+
+1VLML- brain similarity for closed- source LVLMs (e.g., GPT- 4V). We aim to extend these findings to more LVLM variants in subsequent research. Additionally, EEG has limited spatial resolution for brain activity, cannot achieve single- neuron recording and poorly captures deep neural signal sources, meaning the precise neural substrates of our findings require further exploration with intracranial recordings. Moreover, constrained by available aligned EEG- image datasets, our research was performed with a relatively limited set of visual stimuli.
+
+## Ethics Statement
+
+This study analyzes previously collected, publicly available EEG datasets and open- source LVLM checkpoints. We do not collect new human- subject data, and we do not attempt to identify, re- contact, or infer personal attributes of any participant. We therefore believe that this study complies with the ACL Ethics Policy.
+
+## References
+
+Herve Abdi and Lynne J Williams. 2010. Principal component analysis. Wiley interdisciplinary reviews: computational statistics, 2(4):433- 459. Claudio Babiloni, Fabrizio Vecchio, Maurizio Miriello, Gian Luca Romani, and Paolo Maria Rossini. 2006. Visuo- spatial consciousness and parieto- occipital areas: a high- resolution eeg study. Cerebral cortex, 16(1):37- 46. Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, Wei Ding, Chang Gao, Chunjiang Ge, Wenbin Ge, Zhifang Guo, Qidong Huang, Jie Huang, Fei Huang, Binyuan Hui, Shutong Jiang, Zhaohai Li, Mingsheng Li, and 45 others. 2025a. Qwen3- vl technical report. Preprint, arXiv:2511.21631. Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, and 1 others. 2025b. Qwen2. 5- vl technical report. arXiv preprint arXiv:2502.13923. Radoslaw M Cichy and Aude Oliva. 2020. Am/eeg- fmri fusion primer: resolving human brain responses in space and time. Neuron, 107(5):772- 781. Corinna Cortes, Mehryar Mohri, and Afshin Rostamizadeh. 2012. Algorithms for learning kernels based on centered alignment. The Journal of Machine Learning Research, 13(1):795- 828. Jia Deng, Wei Dong, Richard Socher, Li- Jia Li, Kai Li, and Li Fei- Fei. 2009. Imagenet: A large- scale hierarchical image database. In 2009 IEEE conference on computer vision and pattern recognition, pages 248- 255. Ieee.
+
+on computer vision and pattern recognition, pages 248- 255. Ieee.
+
+Adrien Doerig, Tim C Kietzmann, Emily Allen, Yihan Wu, Thomas Naselaris, Kendrick Kay, and Ian Charest. 2025. High- level visual representations in the human brain are aligned with large language models. Nature Machine Intelligence, 7(8):1220- 1234.
+
+Alexey Dosovitskiy. 2020. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929.
+
+Changde Du, Kaicheng Fu, Bincheng Wen, Yi Sun, Jie Peng, Wei Wei, Ying Gao, Shengpei Wang, Chuncheng Zhang, Jinpeng Li, and 1 others. 2025. Human- like object concept representations emerge naturally in multimodal large language models. Nature Machine Intelligence, pages 1- 16.
+
+Hao Fei, Yuan Yao, Zhuosheng Zhang, Fuxiao Liu, Ao Zhang, and Tat- Seng Chua. 2024. From multimodal llm to human- level ai: Modality, instruction, reasoning, efficiency and beyond. In Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC- COLING 2024): Tutorial Summaries, pages 1- 8.
+
+Alessandro T Gifford, Kshitij Dwivedi, Gemma Roig, and Radoslaw M Cichy. 2022. A large and rich eeg dataset for modeling human visual object recognition. NeuroImage, 264:119754.
+
+Alexandre Gramfort, Martin Luessi, Eric Larson, Denis A Engemann, Daniel Strohmeier, Christian Brodbeck, Roman Goj, Mainak Jas, Teon Brooks, Lauri Parkkonen, and 1 others. 2013. Meg and eeg data analysis with mne- python. Frontiers in Neuroinformatics, 7:267.
+
+Tijl Grootswagers, Amanda K Robinson, and Thomas A Carlson. 2019. The representational dynamics of visual objects in rapid serial visual processing streams. NeuroImage, 188:668- 679.
+
+Christine Grutzner, Peter J Uhlhaas, Erhan Genc, Axel Kohler, Wolf Singer, and Michael Wibral. 2010. Neurorelectromagnetic correlates of perceptual closure processes. Journal of Neuroscience, 30(24):8342- 8352.
+
+Pablo Hernández- Cámara, Jose Manuel Jaén- Lorites, Jorge Vila- Tomás, Valero Laparra, and Jesus Malo. 2025. Do vision transformers see like humans? evaluating their perceptual alignment. arXiv preprint arXiv:2508.09850.
+
+Haodong Jing, Dongyao Jiang, Yongqiang Ma, Haibo Hua, Bo Huang, and Nanning Zheng. 2025. Beyond brain decoding: Visual- semantic reconstructions to mental creation extension based on fmri. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 19258- 19268.
+
+===== Page 10 =====
+
+1Amanda Kaas, Sarah Weigelt, Alard Roebroeck, Axel Kohler, and Lars Muckli. 2010. Imagery of a moving object: the role of occipital cortex and human mt/v5+. Neuroimage, 49(1):794- 804. 1Atlas Kazemian, Eric Elmoznino, and Michael F Bonner. 2025. Convolutional architectures are cortex- aligned de novo. Nature Machine Intelligence, pages 1- 11. 1Maurice G Kendall. 1938. A new measure of rank correlation. Biometrika, 30(1- 2):81- 93. 1Nikolaus Kriegeskorte, Marieke Mur, and Peter A Bandettini. 2008. Representational similarity analysis- connecting the branches of systems neuroscience. Frontiers in systems neuroscience, 2:249. 1Mike Lewis, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mohamed, Omer Levy, Ves Stoyanov, and Luke Zettlemoyer. 2019. Bart: Denoising sequence- to- sequence pre- training for natural language generation, translation, and comprehension. Preprint, arXiv:1910.13461. 1Bohao Li, Yuying Ge, Yixiao Ge, Guangzhi Wang, Rui Wang, Ruimao Zhang, and Ying Shan. 2024a. Seedbench: Benchmarking multimodal large language models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 13299- 13308. 1Dongyang Li, Chen Wei, Shiying Li, Jiachen Zou, Haoyang Qin, and Quanying Liu. 2024b. Visual decoding and reconstruction via eeg embeddings with guided diffusion. arXiv preprint arXiv:2403.07721. 1Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. 2024a. Improved baselines with visual instruction tuning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 26296- 26306. 1Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. 2024b. Lla- vanext: Improved reasoning, ocr, and world knowledge. 1Nikos K Logothetis. 2008. What we can do and what we cannot do with fmri. Nature, 453(7197):869- 878. 1Gary C McDonald. 2009. Ridge regression. Wiley Interdisciplinary Reviews: Computational Statistics, 1(1):93- 100. 1Gavin Mischler, Yinghao Aaron Li, Stephan Bickel, Ashesh D Mehta, and Nima Mesgarani. 2024. Contextual feature extraction hierarchies converge in large language models and the brain. Nature Machine Intelligence, 6(12):1467- 1477. 1Elisabeth A Murray, Timothy J Bussey, and Lisa M Saksida. 2007. Visual perception and memory: a new view of medial temporal lobe function in primates and rodents. Annu. Rev. Neurosci., 30(1):99- 122. 1Maryam Mustafa, Lea Lindemann, and Marcus Magnor. 2012. Eeg analysis of implicit human visual perception. In Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, pages 513- 516. 1Lukas Muttenhaler, Klaus Greff, Frieda Born, Bernhard Spitzer, Simon Kornblith, Michael C Mozer, Klaus- Robert Müller, Thomas Unterthiner, and Andrew K Lampinen. 2025. Aligning machine and human visual representations across abstraction levels. Nature, 647(8089):349- 355. 1Jonathan J Nassi and Edward M Callaway. 2009. Parallel processing strategies of the primate visual system. Nature reviews neuroscience, 10(5):360- 372. 1Subba Reddy Oota, Akshett Jindal, Ishani Mondal, Khushbu Pahwa, Satya Sai Srinath Namburi, Manish Shrivastava, Maneesh Singh, Bapi S Raju, and Manish Gupta. 2025a. Correlating instruction- tuning (in multimodal models) with vision- language processing (in the brain). arXiv preprint arXiv:2505.20029. 1Subba Reddy Oota, Khushbu Pahwa, Mounika Marreddy, Maneesh Singh, Manish Gupta, and Bapi S Raju. 2025b. Multi- modal brain encoding models for multi- modal stimuli. arXiv preprint arXiv:2505.20027. 1Karl Pearson. 1895. Vii. note on regression and inheritance in the case of two parents. proceedings of the royal society of London, 58(347- 352):240- 242. 1Maithra Raghu, Thomas Unterthiner, Simon Kornblith, Chiyuan Zhang, and Alexey Dosovitskiy. 2021. Do vision transformers see like convolutional neural networks? Advances in neural information processing systems, 34:12116- 12128. 1Joséphine Raugel, Marc Szafraniec, Huy V Vo, Camille Couprie, Patrick Labatut, Piotr Bojanowski, Valentin Wyart, and Jean- Rémi King. 2025. Disentangling the factors of convergence between brains and computer vision models. arXiv preprint arXiv:2508.18226. 1Amanda K Robinson, Praveen Venkatesh, Matthew J Boring, Michael J Tarr, Pulkit Grover, and Marlene Behrmann. 2017. Very high density eeg elucidates spatiotemporal aspects of early visual processing. Scientific reports, 7(1):16248. 1Charles Spearman. 1904. The proof and measurement of association between two things. American Journal of Psychology, 15:72- 101. 1Shikhar Tuli, Ishita Dasgupta, Erin Grant, and Thomas L Griffiths. 2021. Are convolutional neural networks or transformers more like human vision? arXiv preprint arXiv:2105.07197. 1William Turner, Tessel Blom, and Hinze Hogendoorn. 2023. Visual information is predictively encoded in occipital alpha/low- beta oscillations. Journal of Neuroscience, 43(30):5537- 5545.
+
+===== Page 11 =====
+
+1. Shizun Wang, Songhua Liu, Zhenxiong Tan, and Xinchao Wang. 2024. Mindbridge: A cross- subject brain decoding framework. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11333- 11342. 2. Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Shenglong Ye, Jie Shao, Zhaokai Wang, Zhe Chen, Hongjie Zhang, Ganlin Yang, Haomin Wang, Qi Wei, Jinhui Yin, Wenhao Li, Erfei Cui, and 56 others. 2025. Internvl3.5: Advancing open- source multimodal models in versatility, reasoning, and efficiency. Preprint, arXiv:2508.18265. 3. Zhiyu Wu, Xiaokang Chen, Zizheng Pan, Xingchao Liu, Wen Liu, Damai Dai, Huazuo Gao, Yiyang Ma, Chengyue Wu, Bingxuan Wang, Zhenda Xie, Yu Wu, Kai Hu, Jiawei Wang, Yaofeng Sun, Yukun Li, Yishi Piao, Kang Guan, Aixin Liu, and 8 others. 2024. Deepseek- vl2: Mixture- of- experts vision- language models for advanced multimodal understanding. Preprint, arXiv:2412.10302. 4. Daniel LK Yamins, Ha Hong, Charles F Cadieu, Ethan A Solomon, Darren Seibert, and James J DiCarlo. 2014. Performance- optimized hierarchical models predict neural responses in higher visual cortex. Proceedings of the national academy of sciences, 111(23):8619- 8624. 5. Jihan Yang, Shusheng Yang, Anjali W Gupta, Rilyn Han, Li Fei- Fei, and Saining Xie. 2025a. Thinking in space: How multimodal large language models see, remember, and recall spaces. In Proceedings of the Computer Vision and Pattern Recognition Conference, pages 10632- 10643. 6. Yuchen Yang, Jiaheng Wu, Yan Zhang, Tiejun Zhao, Ziyan Chen, and 1 others. 2025b. Magic: Multimodal alignment and generation enhancement via bridging visual and semantic spaces. arXiv preprint arXiv:2507.21741. 7. Shukang Yin, Chaoyou Fu, Sirui Zhao, Ke Li, Xing Sun, Tong Xu, and Enhong Chen. 2024. A survey on multimodal large language models. National Science Review, 11(12):nwae403. 8. Weijie Yin, Yongjie Ye, Fangxun Shu, Yue Liao, Zijian Kang, Hongyuan Dong, Haiyang Yu, Dingkang Yang, Jiacong Wang, Han Wang, Wenzhuo Liu, Xiao Liang, Shuicheng Yan, and Chao Feng. 2025. Sail- vl2 technical report. Preprint, arXiv:2509.14033. 9. Yuchen Zhou, Emmy Liu, Graham Neubig, Michael Tarr, and Leila Wehbe. 2024. Divergences between language models and human brains. Advances in neural information processing systems, 37:137999- 138031. 10. Jinguo Zhu, Weiyun Wang, Zhe Chen, Zhaoyang Liu, Shenglong Ye, Lixin Gu, Hao Tian, Yuchen Duan, Weijie Su, Jie Shao, Zhangwei Gao, Erfei Cui, Xuehui Wang, Yue Cao, Yangzhou Liu, Xingguang Wei, Hongjie Zhang, Haomin Wang, Weiye Xu, and 32 others. 2025. Internvl3: Exploring advanced training and test- time recipes for open- source multimodal models. Preprint, arXiv:2504.10479.
+
+Shizun Wang, Songhua Liu, Zhenxiong Tan, and Xinchao Wang. 2024. Mindbridge: A cross- subject brain decoding framework. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11333- 11342.
+
+Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Shenglong Ye, Jie Shao, Zhaokai Wang, Zhe Chen, Hongjie Zhang, Ganlin Yang, Haomin Wang, Qi Wei, Jinhui Yin, Wenhao Li, Erfei Cui, and 56 others. 2025. Internvl3.5: Advancing open- source multimodal models in versatility, reasoning, and efficiency. Preprint, arXiv:2508.18265.
+
+Zhiyu Wu, Xiaokang Chen, Zizheng Pan, Xingchao Liu, Wen Liu, Damai Dai, Huazuo Gao, Yiyang Ma, Chengyue Wu, Bingxuan Wang, Zhenda Xie, Yu Wu, Kai Hu, Jiawei Wang, Yaofeng Sun, Yukun Li, Yishi Piao, Kang Guan, Aixin Liu, and 8 others. 2024. Deepseek- vl2: Mixture- of- experts vision- language models for advanced multimodal understanding. Preprint, arXiv:2412.10302.
+
+Daniel LK Yamins, Ha Hong, Charles F Cadieu, Ethan A Solomon, Darren Seibert, and James J DiCarlo. 2014. Performance- optimized hierarchical models predict neural responses in higher visual cortex. Proceedings of the national academy of sciences, 111(23):8619- 8624.
+
+Jihan Yang, Shusheng Yang, Anjali W Gupta, Rilyn Han, Li Fei- Fei, and Saining Xie. 2025a. Thinking in space: How multimodal large language models see, remember, and recall spaces. In Proceedings of the Computer Vision and Pattern Recognition Conference, pages 10632- 10643.
+
+Yuchen Yang, Jiaheng Wu, Yan Zhang, Tiejun Zhao, Ziyan Chen, and 1 others. 2025b. Magic: Multimodal alignment and generation enhancement via bridging visual and semantic spaces. arXiv preprint arXiv:2507.21741.
+
+Shukang Yin, Chaoyou Fu, Sirui Zhao, Ke Li, Xing Sun, Tong Xu, and Enhong Chen. 2024. A survey on multimodal large language models. National Science Review, 11(12):nwae403.
+
+Weijie Yin, Yongjie Ye, Fangxun Shu, Yue Liao, Zijian Kang, Hongyuan Dong, Haiyang Yu, Dingkang Yang, Jiacong Wang, Han Wang, Wenzhuo Liu, Xiao Liang, Shuicheng Yan, and Chao Feng. 2025. Sail- vl2 technical report. Preprint, arXiv:2509.14033.
+
+Yuchen Zhou, Emmy Liu, Graham Neubig, Michael Tarr, and Leila Wehbe. 2024. Divergences between language models and human brains. Advances in neural information processing systems, 37:137999- 138031.
+
+Jinguo Zhu, Weiyun Wang, Zhe Chen, Zhaoyang Liu, Shenglong Ye, Lixin Gu, Hao Tian, Yuchen Duan, Weijie Su, Jie Shao, Zhangwei Gao, Erfei Cui, Xuehui Wang, Yue Cao, Yangzhou Liu, Xingguang Wei, Hongjie Zhang, Haomin Wang, Weiye Xu, and 32
+
+others. 2025. Internvl3: Exploring advanced training and test- time recipes for open- source multimodal models. Preprint, arXiv:2504.10479.
+
+## A Appendix
+
+## A.1 Implementation Details
+
+All the experiments were implemented in Python 3.10.18 with CUDA 12.2 and PyTorch 2.8.0. Experiments are conducted on a single NVIDIA A800 GPU. For each subject, we perform PCA to reduce EEG signals to 256 dimensions (explaining \(>80\%\) variance) and apply standardization to both EEG and visual features. We train a ridge regression model with 5- fold cross- validation to select the optimal regularization parameter \(\alpha \in [10^{- 2}, 10^{3}])\) . To assess the significance of the model's predictions, we conducted a paired t- test comparing the Pearson correlation between true and predicted EEG signals against a distribution obtained from 200 shuffled EEG sets. A p- value below 0.05 indicated that the model's performance exceeded chance.
+
+## A.2 Details on the LVLMs
+
+We used 32 LVLMs drawn from 9 LVLM Series. Below, we provide a detailed description of each model series.
+
+ViT Series (Vision Transformer) The Vision Transformer (ViT) series, revolutionized computer vision by adapting the Transformer architecture from natural language processing to image data. Unlike convolutional neural networks (CNNs) that rely on local receptive fields, ViT splits images into fixed- size patches, embeds them as tokens, and processes them with multi- head self- attention mechanisms. The ViT- B (Base), ViT- L (Large), and ViT- H (Huge) variants differ in model depth, number of attention heads, and hidden dimension size—scaling up these parameters consistently improves performance on large- scale datasets such as ImageNet- 21k and JFT- 300M. ViT established a new paradigm for vision tasks, laying the foundation for subsequent vision- language models (VLMs) by demonstrating the efficacy of Transformer- based architectures in capturing global image context.
+
+Qwen2.5- VL Series The Qwen2.5- VL series, developed by Alibaba Cloud, is a suite of open- source vision- language models presented in technical reports associated with the Qwen model family, building on the advancements of Qwen2- VL. Compris
+
+===== Page 12 =====
+
+ings Qwen2.5- VL- 3B/7B/32B/72B, these models integrate a frozen vision encoder (based on an improved ViT variant) with a decoder- only language model, optimized for multi- modal tasks including image captioning, visual question answering (VQA), and image- grounded dialogue. Key enhancements over previous iterations include refined cross- modal alignment strategies, better handling of high- resolution images, and improved robustness to noisy visual inputs. The series supports diverse input formats (e.g., text, images, multi- image sequences) and achieves state- of- the- art results on benchmarks like MME, SEED- Bench, and VQAv2, with larger models (32B/72B) excelling in complex reasoning tasks while smaller variants (3B/7B) offer efficient deployment for edge devices.
+
+Qwen3- VL Series The Qwen3- VL series represents the latest vision- language iteration of Alibaba Cloud's Qwen model family, introduced in 2024 with technical documentation highlighting advancements in cross- modal fusion and efficiency. Featuring four variants (2B/4B/8B/32B), Qwen3- VL adopts a unified encoder- decoder architecture with a lightweight yet powerful vision encoder and a language decoder pre- trained on a massive corpus of image- text pairs, web documents, and multi- modal dialogues. Compared to Qwen2.5- VL, it incorporates dynamic patch embedding to adapt to varying image resolutions and a novel cross- attention mechanism that enhances alignment between visual features and textual tokens. Qwen3- VL demonstrates superior performance on low- resource visual reasoning tasks and supports real- world applications such as document understanding, medical image analysis, and multi- turn visual dialogue, with the 32B model leading in academic benchmarks and smaller models (2B/4B) optimized for latency- sensitive scenarios.
+
+LLaVA- v1.5 Series The LLaVA- v1.5 series is a lightweight yet effective vision- language model built by aligning a CLIP ViT- L/14 vision encoder with LLaMA- 2- based language decoders (7B/13B). Unlike its predecessor LLaVA- v1, LLaVA- v1.5 leverages a refined visual instruction tuning dataset (LLaVA- Instruct- 150K) and optimized cross- modal projection layers to bridge the gap between visual and textual representations. The model excels in open- ended visual question answering, image captioning, and visual grounding tasks, achieving competitive results on benchmarks like GQA, COCO Caption, and VQAv2 while main
+
+taining efficient inference speeds. Its open- source nature and compatibility with popular LLM frameworks have made LLaVA- v1.5 a widely adopted baseline for research on visual instruction tuning and lightweight VLM development.
+
+LLaVA- Next Series The LLaVA- Next series, an evolution of the LLaVA model family presented in technical reports by the original LLaVA team, enhances cross- modal capabilities by integrating advanced vision encoders and updated language backbones (7B/13B variants based on LLaMA- 2 and Mistral). Key improvements include a two- stage pre- training pipeline: first, aligning visual features with language models using image- text pairs, then fine- tuning on a diverse set of visual instruction data (including complex reasoning, multi- image tasks, and spatial understanding). LLaVA- Next introduces a dynamic visual context window to handle high- resolution images and multi- image inputs, enabling applications such as video frame analysis and multi- document visual reasoning. It outperforms LLaVA- v1.5 on benchmarks like MME and SEED- Bench, particularly in tasks requiring spatial and logical reasoning, while retaining the lightweight and deployable characteristics of the LLaVA family.
+
+InternVL3 Series The InternVL3 series, developed by the Shanghai AI Laboratory, is a scalable vision- language model. Boasting six variants (1B/2B/8B/9B/14B/38B), InternVL3 adopts a hybrid architecture that combines a hierarchical vision encoder (supporting 4K- resolution images) with a multi- modal language decoder, pre- trained on over 1 billion high- quality image- text pairs. A core innovation is the spatial- aware cross- attention mechanism, which preserves fine- grained visual details (e.g., small objects, text in images) critical for tasks like document OCR, medical imaging, and remote sensing. InternVL3 sets new records on benchmarks such as DocVQA, TextVQA, and MME, with the 38B model delivering state- of- the- art performance in high- resolution visual reasoning and smaller variants optimized for edge and cloud deployment.
+
+InternVL3.5 Series The InternVL3.5 series, the latest update to the InternVL family from the Shanghai AI Laboratory, builds on InternVL3 with refined model architectures and expanded pre- training data, as outlined in 2024 technical reports. The six variants (1B/2B/4B/8B/14B/38B)
+
+===== Page 13 =====
+
+Table 3: Comparison of representative vision- language models on multimodal perception, reasoning, and creation benchmarks.
+
+introduce a unified vision- language tokenizer that merges visual patches and textual tokens into a shared embedding space, reducing cross- modal alignment loss and improving inference efficiency. Key enhancements include support for multi- image sequences (e.g., video clips, panoramic images) and a lightweight adapter module that enables fine- tuning on domain- specific tasks (e.g., medical imaging, autonomous driving) without retraining the entire model. InternVL3.5 outperforms InternVL3 on both general and specialized benchmarks, with the 4B variant offering a balanced trade- off between performance and latency, making it suitable for real- world multi- modal applications.
+
+DeepSeek- VL2 Series The DeepSeek- VL2 series, developed by DeepSeek AI, is a compact yet powerful vision- language model suite consisting of Tiny, Small, and Base variants. DeepSeek- VL2 adopts a distilled vision encoder (based on Mobile- ViT) paired with a lightweight language decoder, optimized for low- latency inference on edge devices and mobile platforms. A key feature is the multi- scale visual feature fusion module, which extracts both local and global image features to handle diverse tasks (e.g., VQA, image captioning, object detection) with minimal computational overhead. The series achieves competitive performance on lightweight VLM benchmarks while maintaining fast inference speeds—making it ideal for embedded systems, mobile apps, and real- time visual interaction scenarios.
+
+text[[117, 825, 486, 919], [512, 298, 881, 539]]
+SAIL- VL2 Series The SAIL- VL2 series, developed by the SAIL (Shenzhen Academy of Artificial Intelligence) team, is a pair of efficient vision- language models (2B/8B) designed for edge and cloud deployment, as presented in 2024 technical publications. SAIL- VL2 integrates a lightweight vision transformer (ViT- Small) with a decoder- only language model pre- trained on a curated dataset of Chinese and English image- text pairs, emphasizing cross- lingual visual reasoning capabilities. Unique to SAIL- VL2 is the adaptive cross- modal adapter, which dynamically adjusts the strength of visual- textual fusion based on task complexity, improving performance on both simple (e.g., image classification) and complex (e.g., visual commonsense reasoning) tasks. The 2B variant is optimized for edge devices with limited computational resources, while the 8B variant delivers enhanced performance on academic benchmarks like VQAv2 and GQA, making SAIL- VL2 suitable for both research and industrial applications.
+
+## A.3 OpenCompass Multi-modal Leaderboard
+
+We further report model performance based on the OpenCompass Multi- modal Leaderboard, with results obtained from the official real- time leaderboard at https://rank.opencompass.org. cn/leaderboard- multimodal- official/?m= REALTIME.
+
+The leaderboard provides a systematic evaluation of state- of- the- art multimodal models across multiple capability dimensions. Models are ranked in descending order according to a weighted average score, computed from their performance across all evaluated dimensions.
+
+Specifically, the current OpenCompass multimodal benchmark assesses models along the following six capability dimensions:
+
+- General Perception: the ability to recognize and understand entities, events, and complex visual-textual content in natural scenes.- Spatial Awareness: the capability to perceive and reason about both 2D planar layouts and
+
+===== Page 14 =====
+
+Figure 7: Quantifying Similarity Between LVLM Representations and EEG Signals Across Subjects.
+
+Figure 7: Quantifying Similarity Between LVLM Representations and EEG Signals Across Subjects.
+
+Figure 8: RDMs for predicted and actual EEG responses.
+
+3D spatial structures.
+
+Visual Quality Assessment: the capacity to evaluate image quality attributes, aesthetic properties, and subjective visual effects.
+
+Infographic Understanding: the ability to analyze structured or artificially designed visual content such as charts and diagrams.
+
+Multimodal Reasoning: the ability to solve mathematical or scientific problems spanning multiple modalities and to perform complex logical reasoning.
+
+Multimodal Creation: the capability to understand cross- modal instructions and generate creative content in both social and professional contexts.
+
+Figure 9: Mean correlations between EEG signals from frontal, central, parietal, and occipital brain regions and LVLM representations.
+
+Given the importance of reasoning in multimodal intelligence, the Multimodal Reasoning dimension is assigned twice the weight of the other dimensions when computing the overall weighted average score.
+
+## A.4 RDM Alignment
+
+Using Qwen2.5- VL 7B as an example, we quantified the alignment between its visual representations and neural responses by computing repre
+
+===== Page 15 =====
+
+1.1.1.1.1.1.1.1.1.1.1
+
+sential and model- predicted EEG signals (Figure 8). The strong correspondence indicates that Qwen2.5- VL captures key structural features of human neural representations during image processing.
+
+## A.5 LVLM-EEG Similarity Across Subjects
+
+Figure 7 characterizes LVLM- EEG similarity across 10 subjects via Qwen2.5- VL- 7B. Substantial inter- subject variability emerges: subjects such as subj08 demonstrate uniformly elevated alignment, while counterparts like subj01 exhibit attenuated values. Across all metrics, the mean similarity (denoted by the red dashed line) peaks for linear CKA at 0.4151 and reaches a minimum for Kendall's Tau at 0.1355. These results reveal that the magnitude of LVLM- EEG alignment is highly sensitive to the choice of similarity metric. Critically, however, consistent LVLM- EEG similarity is observed across all subjects, regardless of metric, confirming the robustness of the observed alignment to individual differences in neural or behavioral profiles.
+
+## A.6 Different Brain Regions
+
+Figure 9 shows the mean correlations between EEG signals from different brain regions, including the frontal, central, parietal, and occipital regions, and VLM representations. Clear regional differences are observed, with the strongest alignment in the occipital region, followed by the parietal region, while the frontal and central regions exhibit very weak correlations. This suggests that LVLM- EEG correspondence is most pronounced in visually related brain areas and substantially weaker in other regions.
